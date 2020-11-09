@@ -1,6 +1,7 @@
 var mysql = require("mysql");
 var inquirer = require("inquirer");
 var figlet = require("figlet");
+const {Table} = require('console-table-printer');
 
 // create the connection information for the sql database
 var connection = mysql.createConnection({
@@ -47,30 +48,78 @@ function start() {
       })
       .then(function(answer) {
         // based on their answer, either call the bid or the post functions
-        if (answer.postOrBid === "View Departments") {
+        if (answer.tracker === "View Departments") {
           allDepartments();
         }
-        else if(answer.postOrBid === "View Roles") {
+        else if(answer.tracker === "View Roles") {
           allRoles();
         }
-        else if(answer.postOrBid === "View Employees") {
+        else if(answer.tracker === "View Employees") {
           allRoles();
         }
-        else if(answer.postOrBid === "Add a Department") {
+        else if(answer.tracker === "Add a Department") {
           allRoles();
         }
-        else if(answer.postOrBid === "Add a Role") {
+        else if(answer.tracker === "Add a Role") {
           allRoles();
         }
-        else if(answer.postOrBid === "Add an Employee") {
+        else if(answer.tracker === "Add an Employee") {
           allRoles();
         }
-        else if(answer.postOrBid === "Update Employee Role") {
+        else if(answer.tracker === "Update Employee Role") {
           allRoles();
         } else{
           connection.end();
         }
       });
+  };
+
+  function allDepartments() {
+    // Query the database for all Departs
+    connection.query("SELECT * FROM department", function(err, results) {
+      if (err) throw err;
+
+    //   console.log("");
+    //   console.log("results:  " , results);      
+
+    // Create a table to print out the results to the terminal
+      let d = new Table({
+          columns:[{name: 'ID'},{name: 'Department', alignment: 'left'}]
+      });
+
+      for (let i = 0 ; i < results.length; i++){
+          d.addRow({ID: results[i].id, Department: results[i].name});
+      }
+      d.printTable();
+    
+      console.log("");
+      connection.end();
+    });
   }
+  function allDepartments() {
+    // Query the database for all Departs
+    connection.query("SELECT * FROM department", function(err, results) {
+      if (err) throw err;
+
+    //   console.log("");
+    //   console.log("results:  " , results);      
+
+    // Create a table to print out the results to the terminal
+      let d = new Table({
+          columns:[{name: 'ID'},{name: 'Department', alignment: 'left'}]
+      });
+
+      for (let i = 0 ; i < results.length; i++){
+          d.addRow({ID: results[i].id, Department: results[i].name});
+      }
+      d.printTable();
+    
+      console.log("");
+      connection.end();
+    });
+  }
+  
+
+
 
 
