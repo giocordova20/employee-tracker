@@ -93,29 +93,27 @@ function start() {
       d.printTable();
     
       console.log("");
-      connection.end();
+      start();  // Take user back to beginning
     });
-  }
-  function allDepartments() {
+  };
+
+  function allRoles() {
     // Query the database for all Departs
-    connection.query("SELECT * FROM department", function(err, results) {
+    connection.query("SELECT * FROM role", function(err, results) {
       if (err) throw err;
 
-    //   console.log("");
-    //   console.log("results:  " , results);      
-
     // Create a table to print out the results to the terminal
-      let d = new Table({
-          columns:[{name: 'ID'},{name: 'Department', alignment: 'left'}]
+      let r = new Table({
+          columns:[{name: 'ID'},{name: 'Title', alignment: 'left'}, {name: 'Salary', alignment: 'left'}, {name: 'Department_ID', alignment: 'left'}]
       });
 
       for (let i = 0 ; i < results.length; i++){
-          d.addRow({ID: results[i].id, Department: results[i].name});
+          r.addRow({ID: results[i].id, Title: results[i].title, Salary: results[i].salary, Department_ID: results[i].department_id});
       }
-      d.printTable();
+      r.printTable();
     
       console.log("");
-      connection.end();
+      start();  // Take user back to beginning
     });
   }
   
