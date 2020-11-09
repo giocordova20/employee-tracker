@@ -44,7 +44,7 @@ function start() {
         name: "tracker",
         type: "list",
         message: "What would you like to do?",
-        choices: [ "View Departments", "View Roles", "View Employees", new inquirer.Separator(),"Add a Department", "Add a Role", "Add an Employee", new inquirer.Separator(), "Update Employee Role", "<EXIT>",new inquirer.Separator()]
+        choices: [ "View Departments", "View Roles", "View Employees", new inquirer.Separator(),"Add a Department", "Add a Role", "Add an Employee", new inquirer.Separator(), "Update Employee Role", "  <EXIT>",new inquirer.Separator()]
       })
       .then(function(answer) {
         // based on their answer, either call the bid or the post functions
@@ -161,10 +161,52 @@ function addDepartment() {
         }
       );
     });
+};
 
+function addRole() {
+    // Propmt user for the department to add
+    inquirer
+    .prompt([
+        {
+        name: "role",
+        type: "input",
+        message: "  What is the Title of the role you would like to add?"
+        },
+        {
+            name: "salary",
+            type: "input",
+            message: "  What is the salary for this role? (i.e., 75000)",
+            validate: function(value) {
+                if (isNaN(value) === false) { /// *** Add validation for empty input *** \\\\
+                  return true;
+                }
+                console.log("  Please enter a valid Salary input. (i.e., 75000)")
+                return false;
+              }
+        },
+        {
+            name: "dept_id",
+            type: "input",
+            message: "  What is the department_id for this role?" 
+        },
+    ])
+    .then(function(answer) {
+        // when finished prompting, insert a new item into the db with that info
+        connection.query(
+        "INSERT INTO role SET ?",
+        {
+            title: answer.role,
+            salary: answer.salary,
+            department_id: answer.dept_id
+        },
+        function(err) {
+            if (err) throw err;
+            console.log(`The role was created successfully! \n Title: ${answer.role} , Salary: ${answer.salary}, Department_ID: ${answer.dept_id}`);
 
-
-
+            allRoles(); // Show all roles to verify new department was added
+        }
+        );
+    });
 
 
 };
