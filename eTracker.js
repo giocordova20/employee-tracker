@@ -17,16 +17,16 @@ var connection = mysql.createConnection({
   database: "employee_trackerDB"
 });
 
-// console.log("")
-// figlet('Employee Tracker', function(err, data) {
-//   if (err) {
-//       console.log('Something went wrong...');
-//       console.dir(err);
-//       return;
-//   }
-//   console.log(data)
-//   console.log("")
-// });
+console.log("")
+figlet('Employee Tracker', function(err, data) {
+  if (err) {
+      console.log('Something went wrong...');
+      console.dir(err);
+      return;
+  }
+  console.log(data)
+  console.log("")
+});
 
 // connect to the mysql server and sql database
 connection.connect(function(err) {
@@ -43,7 +43,7 @@ function start() {
         name: "tracker",
         type: "list",
         message: "What would you like to do?",
-        choices: [ "View Departments", "View Roles", "View Employees", new inquirer.Separator(),"Add a Department", "Add a Role", "Add an Employee", new inquirer.Separator(), "Update Employee Role"]
+        choices: [ "View Departments", "View Roles", "View Employees", new inquirer.Separator(),"Add a Department", "Add a Role", "Add an Employee", new inquirer.Separator(), "Update Employee Role", new inquirer.Separator()]
       })
       .then(function(answer) {
         // based on their answer, either call the bid or the post functions
