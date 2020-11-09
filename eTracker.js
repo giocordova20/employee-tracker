@@ -55,26 +55,26 @@ function start() {
           allRoles();
         }
         else if(answer.tracker === "View Employees") {
-          allRoles();
+          allEmployees();
         }
         else if(answer.tracker === "Add a Department") {
-          allRoles();
+          addDepartment();
         }
         else if(answer.tracker === "Add a Role") {
-          allRoles();
+          addRole();
         }
         else if(answer.tracker === "Add an Employee") {
-          allRoles();
+          addEmployee();
         }
         else if(answer.tracker === "Update Employee Role") {
-          allRoles();
+          updateRole();
         } else{
           connection.end();
         }
-      });
-  };
+    });
+};
 
-  function allDepartments() {
+function allDepartments() {
     // Query the database for all Departs
     connection.query("SELECT * FROM department", function(err, results) {
       if (err) throw err;
@@ -95,28 +95,51 @@ function start() {
       console.log("");
       start();  // Take user back to beginning
     });
-  };
+};
 
-  function allRoles() {
-    // Query the database for all Departs
-    connection.query("SELECT * FROM role", function(err, results) {
-      if (err) throw err;
+function allRoles() {
+// Query the database for all Departs
+connection.query("SELECT * FROM role", function(err, results) {
+    if (err) throw err;
+
 
     // Create a table to print out the results to the terminal
-      let r = new Table({
-          columns:[{name: 'ID'},{name: 'Title', alignment: 'left'}, {name: 'Salary', alignment: 'left'}, {name: 'Department_ID', alignment: 'left'}]
-      });
-
-      for (let i = 0 ; i < results.length; i++){
-          r.addRow({ID: results[i].id, Title: results[i].title, Salary: results[i].salary, Department_ID: results[i].department_id});
-      }
-      r.printTable();
-    
-      console.log("");
-      start();  // Take user back to beginning
+    let r = new Table({
+        columns:[{name: 'ID'},{name: 'Title', alignment: 'left'}, {name: 'Salary', alignment: 'left'}, {name: 'Department_ID', alignment: 'left'}]
     });
-  }
-  
+
+    for (let i = 0 ; i < results.length; i++){
+        r.addRow({ID: results[i].id, Title: results[i].title, Salary: results[i].salary, Department_ID: results[i].department_id});
+    }
+    r.printTable();
+
+    console.log("");
+    start();  // Take user back to beginning
+    });
+};
+
+function allEmployees() {
+    // Query the database for all Departs
+    connection.query("SELECT * FROM employee", function(err, results) {
+        if (err) throw err;
+    
+    
+        // Create a table to print out the results to the terminal
+        let r = new Table({
+            columns:[{name: 'ID'},{name: 'First_Name', alignment: 'left'}, {name: 'Last_Name', alignment: 'left'}, {name: 'Role_ID', alignment: 'left'}, {name: 'Manager_ID', alignment: 'left'}]
+        });
+    
+        for (let i = 0 ; i < results.length; i++){
+            r.addRow({ID: results[i].id, First_Name: results[i].first_name, Last_Name: results[i].last_name, Role_ID: results[i].role_id, Manager_ID: results[i].manager_id});
+        }
+        r.printTable();
+    
+        console.log("");
+        start();  // Take user back to beginning
+        });
+    };
+
+
 
 
 
