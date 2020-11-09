@@ -44,7 +44,7 @@ function start() {
         name: "tracker",
         type: "list",
         message: "What would you like to do?",
-        choices: [ "View Departments", "View Roles", "View Employees", new inquirer.Separator(),"Add a Department", "Add a Role", "Add an Employee", new inquirer.Separator(), "Update Employee Role", new inquirer.Separator()]
+        choices: [ "View Departments", "View Roles", "View Employees", new inquirer.Separator(),"Add a Department", "Add a Role", "Add an Employee", new inquirer.Separator(), "Update Employee Role", "<EXIT>",new inquirer.Separator()]
       })
       .then(function(answer) {
         // based on their answer, either call the bid or the post functions
@@ -77,44 +77,41 @@ function start() {
 function allDepartments() {
     // Query the database for all Departs
     connection.query("SELECT * FROM department", function(err, results) {
-      if (err) throw err;
+        if (err) throw err;
 
-    //   console.log("");
-    //   console.log("results:  " , results);      
+        // Create a table to print out the results to the terminal
+        let d = new Table({
+            columns:[{name: 'ID'},{name: 'Department', alignment: 'left'}]
+        });
 
-    // Create a table to print out the results to the terminal
-      let d = new Table({
-          columns:[{name: 'ID'},{name: 'Department', alignment: 'left'}]
-      });
-
-      for (let i = 0 ; i < results.length; i++){
-          d.addRow({ID: results[i].id, Department: results[i].name});
-      }
-      d.printTable();
-    
-      console.log("");
-      start();  // Take user back to beginning
+        for (let i = 0 ; i < results.length; i++){
+            d.addRow({ID: results[i].id, Department: results[i].name});
+        }
+        d.printTable();
+        
+        console.log("");
+        start();  // Take user back to beginning
     });
 };
 
 function allRoles() {
 // Query the database for all Departs
-connection.query("SELECT * FROM role", function(err, results) {
-    if (err) throw err;
+    connection.query("SELECT * FROM role", function(err, results) {
+        if (err) throw err;
 
 
-    // Create a table to print out the results to the terminal
-    let r = new Table({
-        columns:[{name: 'ID'},{name: 'Title', alignment: 'left'}, {name: 'Salary', alignment: 'left'}, {name: 'Department_ID', alignment: 'left'}]
-    });
+        // Create a table to print out the results to the terminal
+        let r = new Table({
+            columns:[{name: 'ID'},{name: 'Title', alignment: 'left'}, {name: 'Salary', alignment: 'left'}, {name: 'Department_ID', alignment: 'left'}]
+        });
 
-    for (let i = 0 ; i < results.length; i++){
-        r.addRow({ID: results[i].id, Title: results[i].title, Salary: results[i].salary, Department_ID: results[i].department_id});
-    }
-    r.printTable();
+        for (let i = 0 ; i < results.length; i++){
+            r.addRow({ID: results[i].id, Title: results[i].title, Salary: results[i].salary, Department_ID: results[i].department_id});
+        }
+        r.printTable();
 
-    console.log("");
-    start();  // Take user back to beginning
+        console.log("");
+        start();  // Take user back to beginning
     });
 };
 
@@ -136,8 +133,41 @@ function allEmployees() {
     
         console.log("");
         start();  // Take user back to beginning
-        });
-    };
+    });
+};
+
+function addDepartment() {
+    // Propmt user for the department to add
+    inquirer
+    .prompt([
+      {
+        name: "dept",
+        type: "input",
+        message: "What is the name of the department you would like to add?"
+      }
+    ])
+    .then(function(answer) {
+      // when finished prompting, insert a new item into the db with that info
+      connection.query(
+        "INSERT INTO department SET ?",
+        {
+          name: answer.dept
+        },
+        function(err) {
+          if (err) throw err;
+          console.log(`The department ${answer.dept} was created successfully!`);
+
+          allDepartments(); // Show all departments to verify new department was added
+        }
+      );
+    });
+
+
+
+
+
+
+};
 
 
 
