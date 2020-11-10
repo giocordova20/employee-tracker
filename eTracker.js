@@ -45,9 +45,9 @@ function start() {
         type: "list",
         message: "What would you like to do?",
         choices: [ "View Employees (by Last Name)",
-        "View Employees (by Department",
-        "View Employees (by Manager",
-        "View Employees (by ID",
+        "View Employees (by Department)",
+        "View Employees (by Manager)",
+        "View Employees (by ID)",
         "View Departments", 
         "View Roles", 
         new inquirer.Separator(), 
@@ -96,13 +96,17 @@ function start() {
     });
 };
 
+//=================================================//
+//          All The View Functions                 //
+//=================================================//
+
 //// View all Employees By Last Name \\\
 function allEmployeesLastName() {
     // Query the database for all Departs
     let query = "SELECT  employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title, department.name AS Department, role.salary AS Salary,CONCAT(s.first_name, ' ', s.last_name) AS Manager "
                 + "FROM employee "
-                + "INNER JOIN role ON employee.id = role.id "
-                + "INNER JOIN department ON role.department_id = department.id "
+                + "LEFT JOIN role ON employee.role_id = role.id "
+                + "LEFT JOIN department ON role.department_id = department.id "
                 + "LEFT JOIN employee s ON s.id = employee.manager_id "   
                 + "ORDER BY employee.last_name ASC;"
     connection.query(query, function(err, results) {
@@ -129,21 +133,109 @@ function allEmployeesLastName() {
     });
 };
 
+//// View all Employees By Department and sort employees by Last Name within the Department \\\
+function allEmployeesDepartment() {
+    // Query the database for all Departs
+    let query = "SELECT  employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title, department.name AS Department, role.salary AS Salary,CONCAT(s.first_name, ' ', s.last_name) AS Manager "
+                + "FROM employee " 
+                + "LEFT JOIN role ON employee.role_id = role.id " 
+                + "LEFT JOIN department ON role.department_id = department.id "
+                + "LEFT JOIN employee s ON s.id = employee.manager_id "
+                + "ORDER BY department.name, employee.last_name ASC;"
+    connection.query(query, function(err, results) {
+        if (err) throw err;
+    
+        // Create a table to print out the results to the terminal
+        let r = new Table({
+            columns:[{name: 'Department', alignment: 'left'},
+            {name: 'Employee_ID'}, 
+            {name: 'Last_Name', alignment: 'left'}, 
+            {name: 'First_Name', alignment: 'left'}, 
+            {name: 'Title', alignment: 'left'},  
+            {name: 'Salary', alignment: 'left'}, 
+            {name: 'Manager', alignment: 'left'}]
+        });
+    
+        for (let i = 0 ; i < results.length; i++){
+            r.addRow({Department: results[i].Department, Employee_ID: results[i].Employee_ID, Last_Name: results[i].Last_Name, First_Name: results[i].First_Name, Title: results[i].Title, Salary: results[i].Salary, Manager: results[i].Manager});
+        }
+        r.printTable();
+    
+        console.log("");
+        start();  // Take user back to beginning
+    });
+};
 
+//// View all Employees By Managers and sort employees by Last Name for each Manager \\\
+function allEmployeesManager() {
+    // Query the database for all Departs
+    let query = "SELECT  employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title, department.name AS Department, role.salary AS Salary,CONCAT(s.first_name, ' ', s.last_name) AS Manager "
+                + "FROM employee " 
+                + "LEFT JOIN role ON employee.role_id = role.id " 
+                + "LEFT JOIN department ON role.department_id = department.id "
+                + "LEFT JOIN employee s ON s.id = employee.manager_id "
+                + "ORDER BY department.name, employee.last_name ASC;"
+    connection.query(query, function(err, results) {
+        if (err) throw err;
+    
+        // Create a table to print out the results to the terminal
+        let r = new Table({
+            columns:[{name: 'Manager', alignment: 'left'},
+            {name: 'Employee_ID'}, 
+            {name: 'Last_Name', alignment: 'left'}, 
+            {name: 'First_Name', alignment: 'left'}, 
+            {name: 'Title', alignment: 'left'},  
+            {name: 'Salary', alignment: 'left'},
+            {name: 'Department', alignment: 'left'}]
+        });
+    
+        for (let i = 0 ; i < results.length; i++){
+            r.addRow({Manager: results[i].Manager, Employee_ID: results[i].Employee_ID, Last_Name: results[i].Last_Name, First_Name: results[i].First_Name, Title: results[i].Title, Salary: results[i].Salary, Department: results[i].Department});
+        }
+        r.printTable();
+    
+        console.log("");
+        start();  // Take user back to beginning
+    });
+};
 
-
-
-
-
-
-
-
-
+//// View all Employees By ID \\\
+function allEmployeesID() {
+    // Query the database for all Departs
+    let query = "SELECT  employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title, department.name AS Department, role.salary AS Salary,CONCAT(s.first_name, ' ', s.last_name) AS Manager "
+                + "FROM employee "
+                + "LEFT JOIN role ON employee.role_id = role.id "
+                + "LEFT JOIN department ON role.department_id = department.id "
+                + "LEFT JOIN employee s ON s.id = employee.manager_id "   
+                + "ORDER BY employee.id ASC;"
+    connection.query(query, function(err, results) {
+        if (err) throw err;
+    
+        // Create a table to print out the results to the terminal
+        let r = new Table({
+            columns:[{name: 'Employee_ID'}, 
+            {name: 'Last_Name', alignment: 'left'}, 
+            {name: 'First_Name', alignment: 'left'}, 
+            {name: 'Title', alignment: 'left'}, 
+            {name: 'Department', alignment: 'left'}, 
+            {name: 'Salary', alignment: 'left'}, 
+            {name: 'Manager', alignment: 'left'}]
+        });
+    
+        for (let i = 0 ; i < results.length; i++){
+            r.addRow({Employee_ID: results[i].Employee_ID, Last_Name: results[i].Last_Name, First_Name: results[i].First_Name, Title: results[i].Title, Department: results[i].Department, Salary: results[i].Salary, Manager: results[i].Manager});
+        }
+        r.printTable();
+    
+        console.log("");
+        start();  // Take user back to beginning
+    });
+};
 
 //// View all Departments \\\\
 function allDepartments() {
     // Query the database for all Departs
-    connection.query("SELECT * FROM department", function(err, results) {
+    connection.query("SELECT * FROM department ORDER BY name ASC", function(err, results) {
         if (err) throw err;
 
         // Create a table to print out the results to the terminal
@@ -164,7 +256,7 @@ function allDepartments() {
 //// View all Roles \\\\
 function allRoles() {
 // Query the database for all Departs
-    connection.query("SELECT * FROM role", function(err, results) {
+    connection.query("SELECT * FROM role ORDER BY title", function(err, results) {
         if (err) throw err;
 
 
@@ -183,6 +275,11 @@ function allRoles() {
     });
 };
 
+
+
+//=================================================//
+//          All The View Functions                 //
+//=================================================//
 
 //// Add a Department \\\\
 function addDepartment() {
