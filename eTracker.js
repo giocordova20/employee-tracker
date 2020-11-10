@@ -44,18 +44,40 @@ function start() {
         name: "tracker",
         type: "list",
         message: "What would you like to do?",
-        choices: [ "View Departments", "View Roles", "View Employees", new inquirer.Separator(),"Add a Department", "Add a Role", "Add an Employee", new inquirer.Separator(), "Update Employee Role", "  <EXIT>",new inquirer.Separator()]
+        choices: [ "View Employees (by Last Name)",
+        "View Employees (by Department",
+        "View Employees (by Manager",
+        "View Employees (by ID",
+        "View Departments", 
+        "View Roles", 
+        new inquirer.Separator(), 
+        "Add a Department", 
+        "Add a Role", 
+        "Add an Employee", 
+        new inquirer.Separator(), 
+        "Update Employee Role", 
+        "  <EXIT>", 
+        new inquirer.Separator()]
       })
       .then(function(answer) {
         // based on their answer, either call the bid or the post functions
-        if (answer.tracker === "View Departments") {
+        if(answer.tracker === "View Employees (by Last Name)") {
+          allEmployeesLastName();
+        }
+        else if(answer.tracker === "View Employees (by Department)") {
+          allEmployeesDepartment();
+        }
+        else if(answer.tracker === "View Employees (by Manager)") {
+          allEmployeesManager();
+        }
+        else if(answer.tracker === "View Employees (by ID)") {
+          allEmployeesID();
+        }
+        else if (answer.tracker === "View Departments") {
           allDepartments();
         }
         else if(answer.tracker === "View Roles") {
           allRoles();
-        }
-        else if(answer.tracker === "View Employees") {
-          allEmployees();
         }
         else if(answer.tracker === "Add a Department") {
           addDepartment();
@@ -74,6 +96,29 @@ function start() {
     });
 };
 
+//// View all Employees By Last Name \\\
+function allEmployeesLastName() {
+    // Query the database for all Departs
+    connection.query("SELECT * FROM employee ORDER BY last_name ASC", function(err, results) {
+        if (err) throw err;
+    
+        // Create a table to print out the results to the terminal
+        let r = new Table({
+            columns:[{name: 'ID'},{name: 'First_Name', alignment: 'left'}, {name: 'Last_Name', alignment: 'left'}, {name: 'Role_ID', alignment: 'left'}, {name: 'Manager_ID', alignment: 'left'}]
+        });
+    
+        for (let i = 0 ; i < results.length; i++){
+            r.addRow({ID: results[i].id, First_Name: results[i].first_name, Last_Name: results[i].last_name, Role_ID: results[i].role_id, Manager_ID: results[i].manager_id});
+        }
+        r.printTable();
+    
+        console.log("");
+        start();  // Take user back to beginning
+    });
+};
+
+
+//// View all Departments \\\\
 function allDepartments() {
     // Query the database for all Departs
     connection.query("SELECT * FROM department", function(err, results) {
@@ -94,6 +139,7 @@ function allDepartments() {
     });
 };
 
+//// View all Roles \\\\
 function allRoles() {
 // Query the database for all Departs
     connection.query("SELECT * FROM role", function(err, results) {
@@ -115,26 +161,8 @@ function allRoles() {
     });
 };
 
-function allEmployees() {
-    // Query the database for all Departs
-    connection.query("SELECT * FROM employee", function(err, results) {
-        if (err) throw err;
-    
-        // Create a table to print out the results to the terminal
-        let r = new Table({
-            columns:[{name: 'ID'},{name: 'First_Name', alignment: 'left'}, {name: 'Last_Name', alignment: 'left'}, {name: 'Role_ID', alignment: 'left'}, {name: 'Manager_ID', alignment: 'left'}]
-        });
-    
-        for (let i = 0 ; i < results.length; i++){
-            r.addRow({ID: results[i].id, First_Name: results[i].first_name, Last_Name: results[i].last_name, Role_ID: results[i].role_id, Manager_ID: results[i].manager_id});
-        }
-        r.printTable();
-    
-        console.log("");
-        start();  // Take user back to beginning
-    });
-};
 
+//// Add a Department \\\\
 function addDepartment() {
     // Propmt user for the department to add
     inquirer
@@ -162,6 +190,7 @@ function addDepartment() {
     });
 };
 
+//// Add a Role \\\\
 function addRole() {
     // Propmt user for the role to add
     inquirer
@@ -210,6 +239,7 @@ function addRole() {
 
 };
 
+//// Add an Employee \\\\
 function addEmployee() {
     // Propmt user for the employee to add
     // First query the database to display all the available departments
