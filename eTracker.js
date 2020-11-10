@@ -99,16 +99,28 @@ function start() {
 //// View all Employees By Last Name \\\
 function allEmployeesLastName() {
     // Query the database for all Departs
-    connection.query("SELECT * FROM employee ORDER BY last_name ASC", function(err, results) {
+    let query = "SELECT  employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title, department.name AS Department, role.salary AS Salary,CONCAT(s.first_name, ' ', s.last_name) AS Manager "
+                + "FROM employee "
+                + "INNER JOIN role ON employee.id = role.id "
+                + "INNER JOIN department ON role.department_id = department.id "
+                + "LEFT JOIN employee s ON s.id = employee.manager_id "   
+                + "ORDER BY employee.last_name ASC;"
+    connection.query(query, function(err, results) {
         if (err) throw err;
     
         // Create a table to print out the results to the terminal
         let r = new Table({
-            columns:[{name: 'ID'},{name: 'First_Name', alignment: 'left'}, {name: 'Last_Name', alignment: 'left'}, {name: 'Role_ID', alignment: 'left'}, {name: 'Manager_ID', alignment: 'left'}]
+            columns:[{name: 'Employee_ID'}, 
+            {name: 'Last_Name', alignment: 'left'}, 
+            {name: 'First_Name', alignment: 'left'}, 
+            {name: 'Title', alignment: 'left'}, 
+            {name: 'Department', alignment: 'left'}, 
+            {name: 'Salary', alignment: 'left'}, 
+            {name: 'Manager', alignment: 'left'}]
         });
     
         for (let i = 0 ; i < results.length; i++){
-            r.addRow({ID: results[i].id, First_Name: results[i].first_name, Last_Name: results[i].last_name, Role_ID: results[i].role_id, Manager_ID: results[i].manager_id});
+            r.addRow({Employee_ID: results[i].Employee_ID, Last_Name: results[i].Last_Name, First_Name: results[i].First_Name, Title: results[i].Title, Department: results[i].Department, Salary: results[i].Salary, Manager: results[i].Manager});
         }
         r.printTable();
     
@@ -116,6 +128,16 @@ function allEmployeesLastName() {
         start();  // Take user back to beginning
     });
 };
+
+
+
+
+
+
+
+
+
+
 
 
 //// View all Departments \\\\
