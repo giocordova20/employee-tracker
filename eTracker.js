@@ -120,7 +120,6 @@ function allEmployees() {
     connection.query("SELECT * FROM employee", function(err, results) {
         if (err) throw err;
     
-    
         // Create a table to print out the results to the terminal
         let r = new Table({
             columns:[{name: 'ID'},{name: 'First_Name', alignment: 'left'}, {name: 'Last_Name', alignment: 'left'}, {name: 'Role_ID', alignment: 'left'}, {name: 'Manager_ID', alignment: 'left'}]
@@ -164,7 +163,7 @@ function addDepartment() {
 };
 
 function addRole() {
-    // Propmt user for the department to add
+    // Propmt user for the role to add
     inquirer
     .prompt([
         {
@@ -201,7 +200,7 @@ function addRole() {
         },
         function(err) {
             if (err) throw err;
-            console.log(`The role was created successfully! \n Title: ${answer.role} , Salary: ${answer.salary}, Department_ID: ${answer.dept_id}`);
+            console.log(`The Role was created successfully! \n Title: ${answer.role} , Salary: ${answer.salary}, Department_ID: ${answer.dept_id}`);
 
             allRoles(); // Show all roles to verify new department was added
         }
@@ -212,53 +211,74 @@ function addRole() {
 };
 
 function addEmployee() {
-    // Propmt user for the department to add
-    inquirer
-    .prompt([
-        {
-        name: "role",
-        type: "input",
-        message: "  What is the Title of the role you would like to add?"
-        },
-        {
-            name: "salary",
+    // Propmt user for the employee to add
+    // First query the database to display all the available departments
+    
+        inquirer
+        .prompt([
+            {
+              name: "firstname",
+              type: "input",
+              message: "  What is the employee's first name?"
+            },
+            {
+              name: "lastname",
+              type: "input",
+              message: "  What is the employee's last name?"
+            },  
+            {
+              name: "roleid",
+              type: "input",
+              choices: function() {
+                  connection.query("SELECT * FROM role ORDER BY title ASC", function(err, results) {
+                      if (err) throw err;
+                      
+                      let roleArr = [];
+                      for (let i = 0; i < results.length; i++){
+                          roleArr.push("Role ID: " + results[i].id  + "  Title: " + results[i].title);
+                        }
+                        
+                        console.log(roleArr);
+                        console.log("    Enter an 'Role ID' from above. ");
+                });
+              },
+              message: "  'Role ID' is: ?"
+            },
+            {
+            name: "mgr_id",
             type: "input",
-            message: "  What is the salary for this role? (i.e., 75000)",
-            validate: function(value) {
-                if (isNaN(value) === false) { /// *** Add validation for empty input *** \\\\
-                  return true;
-                }
-                console.log("  Please enter a valid Salary input. (i.e., 75000)")
-                return false;
-              }
-        },
-        {
-            name: "dept_id",
-            type: "input",
-            message: "  What is the department_id for this role?" 
-        },
-    ])
-    .then(function(answer) {
-        // when finished prompting, insert a new item into the db with that info
-        connection.query(
-        "INSERT INTO role SET ?",
-        {
-            title: answer.role,
-            salary: answer.salary,
-            department_id: answer.dept_id
-        },
-        function(err) {
-            if (err) throw err;
-            console.log(`The role was created successfully! \n Title: ${answer.role} , Salary: ${answer.salary}, Department_ID: ${answer.dept_id}`);
+            choices: function() {
+                connection.query("SELECT employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title FROM employee INNER JOIN role ON employee.role_id = role.id WHERE role.title LIKE '%manager%';", function(err,res){
+                    if (err) throw err;
+                    
+                    let mgrArray = [];
+                    for (let i = 0; i < res.length; i++){
+                        mgrArray.push("Employee ID: " + res[i].Employee_ID  + "  First Name: " + res[i].First_Name + "  Last Name: " + res[i].last_name + "  Title: " + res[i].Title);
+                    }
+                    console.log(mgrArray);     
+                    console.log("    Enter the Manager 'Employee ID' from above. ");
+   
+                })
+            },
+            message: "  'Manager ID' is:  ",
+            },
+        ])
+        .then(function(answer) {
+            // when finished prompting, insert a new item into the db with that info
+            connection.query(
+            "INSERT INTO employee SET ?",
+            {
+                first_name: answer.firstname,
+                last_name: answer.lastname,
+                role_id: answer.roleid,
+                manager_id: answer.mgr_id
+            },
+            function(err) {
+                if (err) throw err;
+                console.log(`The employee was added successfully! \n  ${answer.firstname} ${answer.lastname}, Role ID: ${answer.roleid}, Manager: ${answer.mgr_id} `);
 
-            allRoles(); // Show all roles to verify new department was added
-        }
-        );
-    });
-
-
+                allEmployees(); // Show all Employees to verify new department was added
+            }
+            );
+        });
 };
-
-
-
-
