@@ -44,20 +44,25 @@ function start() {
         name: "tracker",
         type: "list",
         message: "What would you like to do?",
-        choices: [ "View Employees (by Last Name)",
-        "View Employees (by Department)",
-        "View Employees (by Manager)",
-        "View Employees (by ID)",
-        "View Departments", 
-        "View Roles", 
-        new inquirer.Separator(), 
-        "Add a Department", 
-        "Add a Role", 
-        "Add an Employee", 
-        new inquirer.Separator(), 
-        "Update Employee Role", 
-        "  <EXIT>", 
-        new inquirer.Separator()]
+        choices: [ 
+                    "View Employees (by Last Name)",
+                    "View Employees (by Department)",
+                    "View Employees (by Manager)",
+                    "View Employees (by ID)",
+                    "View Departments", 
+                    "View Roles", 
+                    new inquirer.Separator(), 
+                    "Add a Department", 
+                    "Add a Role", 
+                    "Add an Employee", 
+                    new inquirer.Separator(), 
+                    "Update Employee Role", 
+                    "Update Employee Manager", 
+                    new inquirer.Separator(),
+                    "Remove Employee", 
+                    "   <EXIT>", 
+                    new inquirer.Separator()
+                ]
       })
       .then(function(answer) {
         // based on their answer, either call the bid or the post functions
@@ -89,8 +94,15 @@ function start() {
           addEmployee();
         }
         else if(answer.tracker === "Update Employee Role") {
-          updateRole();
-        } else{
+          updateEmployeeRole();
+        } 
+        else if(answer.tracker === "Update Employee Manager") {
+          updateEmployeeManager();
+        } 
+        else if(answer.tracker === "Remove Employee") {
+          removeEmployee();
+        } 
+        else{
           connection.end();
         }
     });
@@ -560,5 +572,112 @@ function addEmployee() {
             );
         });
     });
-
 };
+
+
+const existingEmployee = [];
+const existingEmployeeID = [];
+
+function existingEmployees(){
+        // First query the database to display all the available departments
+        connection.query("SELECT * FROM employee ORDER BY last_name ASC", function(err, results) {
+            if (err) throw err;
+            
+            console.log("    * employees", results);
+    
+            // Create an array only for the Department names and an array only for the department ids
+            for (let i = 0 ; i < results.length; i++){
+                existingEmployee.push(results[i].last_name + ', '+ results[i].first_name);
+                existingEmployeeID.push(results[i].id);
+            }
+            console.log({existingEmployee});
+            console.log({existingEmployeeID});
+    
+        });
+};
+existingEmployees();
+
+//// Remove an Employee \\\\
+function removeEmployee() {
+
+    // Propmt user for the employee to add
+        inquirer
+        .prompt([
+            // {
+            //   name: "firstname",
+            //   type: "input",
+            //   message: "  What is the employee's first name?"
+            // },
+            // {
+            //   name: "lastname",
+            //   type: "input",
+            //   message: "  What is the employee's last name?"
+            // },  
+            {
+              name: "employee",
+              type: "rawlist",
+              message: "  Which employe would you like to remove?",
+              choices: existingEmployee
+            }
+            // ,
+            // {
+            // name: "manager",
+            // type: "rawlist",
+            // message: "  Who is this Employee's Manager?",
+            // choices: existingMgrs
+            // },
+        ])
+        .then(function(answer) {
+
+            // console.log("")
+            // console.log("    IN THE .then")
+            console.log({answer});
+            // console.log({existingRolesID});
+            // console.log({existingMgrsID});
+    
+            console.log("    BEFORE THE for loop")
+            let removeID = "";
+            for (let i = 0; i < existingEmployee.length; i++){
+                console.log("existingEmployee:   " ,existingEmployee[i])
+                if (answer.employee === existingEmployee[i]){
+                    removeID = existingEmployeeID[i]
+                }
+            }
+            console.log({removeID})
+            // console.log("    ----    ")
+    
+
+            // console.log({existingDepts});
+            // console.log({existingDeptsID});
+    
+            // console.log("BEFORE THE for mgrID loop")
+            // let mgrID = "";
+            // for (let i = 0; i < existingMgrs.length; i++){
+            //     console.log("existingMgrs:   " ,existingMgrs[i])
+            //     if (answer.manager === existingMgrs[i]){
+            //         mgrID = existingMgrsID[i]
+            //     }
+            // }
+            // console.log({mgrID})
+            // console.log("    ----    ")
+
+
+
+            // When finished prompting, remove the employee
+            connection.query(`DELETE FROM employee WHERE employee.id = ${removeID}`,
+            // {
+            //     first_name: answer.firstname,
+            //     last_name: answer.lastname,
+            //     role_id: roleID,
+            //     manager_id: mgrID
+            // },
+            function(err) {
+                if (err) throw err;
+                console.log(`The employee was removed successfully! \n  ${answer.firstname} ${answer.lastname}`);
+                console.log("")
+
+                allEmployeesLastName(); // Show all Employees to verify new department was added
+            }
+            );
+        });
+    };
