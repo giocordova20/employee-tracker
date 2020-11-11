@@ -256,17 +256,18 @@ function allDepartments() {
 //// View all Roles \\\\
 function allRoles() {
 // Query the database for all Departs
-    connection.query("SELECT * FROM role ORDER BY title", function(err, results) {
-        if (err) throw err;
+    let query = "SELECT role.id, role.title, role.salary, role.department_id, department.name AS Department FROM role INNER JOIN department ON role.department_id = department.id;";
 
+    connection.query(query, function(err, results) {
+        if (err) throw err;
 
         // Create a table to print out the results to the terminal
         let r = new Table({
-            columns:[{name: 'ID'},{name: 'Title', alignment: 'left'}, {name: 'Salary', alignment: 'left'}, {name: 'Department_ID', alignment: 'left'}]
+            columns:[{name: 'ID'},{name: 'Title', alignment: 'left'}, {name: 'Salary', alignment: 'left'}, {name: 'Department', alignment: 'left'}]
         });
 
         for (let i = 0 ; i < results.length; i++){
-            r.addRow({ID: results[i].id, Title: results[i].title, Salary: results[i].salary, Department_ID: results[i].department_id});
+            r.addRow({ID: results[i].id, Role: results[i].title, Salary: results[i].salary, Department: results[i].Department});
         }
         r.printTable();
 
@@ -278,7 +279,7 @@ function allRoles() {
 
 
 //=================================================//
-//          All The View Functions                 //
+//          All The Add Functions                 //
 //=================================================//
 
 //// Add a Department \\\\
@@ -309,35 +310,16 @@ function addDepartment() {
     });
 };
 
-
-let id = function deptID(name){
-    
-    console.log("  ")
-    console.log("  IN deptID()")
-    console.log("  name:  ", name)
-    connection.query(`SELECT department_id FROM role WHERE title = '${name}'`, function(err, data) {
-        if (err) throw err;
-        
-        // console.log("--  data  --");
-        // console.log("  data", data);
-        // console.log("  data", data[0]);
-        // console.log("  data", data[0].department_id);
-        // console.log("--  --  --");
-
-        return data[0].department_id
-    });
-
-
-};
-
 //// Add a Role \\\\
 function addRole() {
 
+    // Get all the data from the department table
     connection.query("SELECT * FROM department ORDER BY name", function(err, results) {
         if (err) throw err;
         
-        console.log("results", results);
+        console.log("   department in addRole():  ", results);
 
+        // Create an array only for the Department names and an array only for the department ids
         let existingDepts = [];
         let existingDeptsID = [];
         for (let i = 0 ; i < results.length; i++){
@@ -406,21 +388,98 @@ function addRole() {
         },
         function(err) {
             if (err) throw err;
-            console.log(`The Role was created successfully! \n Title: ${answer.role} , Salary: ${answer.salary}, Department_ID: ${id}`);
+            console.log(`The Role was created successfully! \n Title: ${answer.role} , Salary: ${answer.salary}, Department_ID: ${answer.dept}`);
+            console.log("");
 
             allRoles(); // Show all roles to verify new department was added
         }
       );
     });
-});
+  });
+};
+
+const existingDepts = [];
+const existingDeptsID = [];
+function deptInfo(){
+        connection.query("SELECT * FROM department ORDER BY name", function(err, results) {
+            if (err) throw err;
+            
+            // console.log("    * departments", results);
+
+            // Create an array only for the Department names and an array only for the department ids
+            for (let i = 0 ; i < results.length; i++){
+                existingDepts.push(results[i].name);
+                existingDeptsID.push(results[i].id);
+            }
+            // console.log({existingDepts});
+            // console.log({existingDeptsID});
+        });
+    };
+deptInfo()
+
+const existingMgrs = [];
+const existingMgrsID = [];
+function existingManagers(){
+    let managerQuery = "SELECT employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title "
+                        + "FROM employee "
+                        + "INNER JOIN role ON employee.role_id = role.id WHERE role.title LIKE '%manager%' OR role.title = 'CEO' OR role.title = 'Vice President';"
+
+    connection.query(managerQuery, function(err, results) {
+        if (err) throw err;
+
+        // console.log("    existingManagers:   ", results);
+
+        // Create an array only for the Department names and an array only for the department ids
+        for (let i = 0 ; i < results.length; i++){
+        existingMgrs.push(results[i].Last_Name + ", " + results[i].First_Name);
+        existingMgrsID.push(results[i].Employee_ID);
+        }
+        // console.log({existingMgrs});
+        // console.log({existingMgrsID});
+    });
 
 };
+existingManagers();
 
 //// Add an Employee \\\\
 function addEmployee() {
-    // Propmt user for the employee to add
     // First query the database to display all the available departments
+    connection.query("SELECT * FROM role ORDER BY title", function(err, results) {
+        if (err) throw err;
+        
+        // console.log("    * roles", results);
+
+        // Create an array only for the Department names and an array only for the department ids
+        let existingRoles = [];
+        let existingRolesID = [];
+        ID = [];
+        for (let i = 0 ; i < results.length; i++){
+            existingRoles.push(results[i].title);
+            existingRolesID.push(results[i].id);
+        }
+        // console.log({existingRoles});
+        // console.log({existingRolesID});
+
+
+        connection.query("SELECT * FROM department ORDER BY name", function(err, results) {
+            if (err) throw err;
+            
+            // console.log("    * departments", results);
+
+            // Create an array only for the Department names and an array only for the department ids
+            let existingDepts = [];
+            let existingDeptsID = [];
+            for (let i = 0 ; i < results.length; i++){
+                existingDepts.push(results[i].name);
+                existingDeptsID.push(results[i].id);
+            }
+            // console.log({existingDepts});
+            // console.log({existingDeptsID});
+        });
+
+
     
+    // Propmt user for the employee to add
         inquirer
         .prompt([
             {
@@ -434,58 +493,72 @@ function addEmployee() {
               message: "  What is the employee's last name?"
             },  
             {
-              name: "roleid",
-              type: "input",
-              choices: function() {
-                  connection.query("SELECT * FROM role ORDER BY title ASC", function(err, results) {
-                      if (err) throw err;
-                      
-                      let roleArr = [];
-                      for (let i = 0; i < results.length; i++){
-                          roleArr.push("Role ID: " + results[i].id  + "  Title: " + results[i].title);
-                        }
-                        
-                        console.log(roleArr);
-                        console.log("    Enter an 'Role ID' from above. ");
-                });
-              },
-              message: "  'Role ID' is: ?"
+              name: "role",
+              type: "rawlist",
+              message: "  What is this employee's Role?",
+              choices: existingRoles
             },
             {
-            name: "mgr_id",
-            type: "input",
-            choices: function() {
-                connection.query("SELECT employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title FROM employee INNER JOIN role ON employee.role_id = role.id WHERE role.title LIKE '%manager%';", function(err,res){
-                    if (err) throw err;
-                    
-                    let mgrArray = [];
-                    for (let i = 0; i < res.length; i++){
-                        mgrArray.push("Employee ID: " + res[i].Employee_ID  + "  First Name: " + res[i].First_Name + "  Last Name: " + res[i].last_name + "  Title: " + res[i].Title);
-                    }
-                    console.log(mgrArray);     
-                    console.log("    Enter the Manager 'Employee ID' from above. ");
-   
-                })
-            },
-            message: "  'Manager ID' is:  ",
+            name: "manager",
+            type: "rawlist",
+            message: "  Who is this Employee's Manager?",
+            choices: existingMgrs
             },
         ])
         .then(function(answer) {
+
+            // console.log("")
+            // console.log("    IN THE .then")
+            // console.log({answer});
+            // console.log({existingRolesID});
+            // console.log({existingMgrsID});
+    
+            // console.log("BEFORE THE for rolesID loop")
+            let roleID = "";
+            for (let i = 0; i < existingRoles.length; i++){
+                console.log("existingRoles:   " ,existingRoles[i])
+                if (answer.role === existingRoles[i]){
+                    roleID = existingRolesID[i]
+                }
+            }
+            // console.log({roleID})
+            // console.log("    ----    ")
+    
+
+            // console.log({existingDepts});
+            // console.log({existingDeptsID});
+    
+            // console.log("BEFORE THE for mgrID loop")
+            let mgrID = "";
+            for (let i = 0; i < existingMgrs.length; i++){
+                console.log("existingMgrs:   " ,existingMgrs[i])
+                if (answer.manager === existingMgrs[i]){
+                    mgrID = existingMgrsID[i]
+                }
+            }
+            // console.log({mgrID})
+            // console.log("    ----    ")
+
+
+
             // when finished prompting, insert a new item into the db with that info
             connection.query(
             "INSERT INTO employee SET ?",
             {
                 first_name: answer.firstname,
                 last_name: answer.lastname,
-                role_id: answer.roleid,
-                manager_id: answer.mgr_id
+                role_id: roleID,
+                manager_id: mgrID
             },
             function(err) {
                 if (err) throw err;
-                console.log(`The employee was added successfully! \n  ${answer.firstname} ${answer.lastname}, Role ID: ${answer.roleid}, Manager: ${answer.mgr_id} `);
+                console.log(`The employee was added successfully! \n  ${answer.firstname} ${answer.lastname}, Role: ${answer.role}, Manager: ${answer.manager} `);
+                console.log("")
 
-                allEmployees(); // Show all Employees to verify new department was added
+                allEmployeesLastName(); // Show all Employees to verify new department was added
             }
             );
         });
+    });
+
 };
