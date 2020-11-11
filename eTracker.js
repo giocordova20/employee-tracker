@@ -2,18 +2,13 @@ var mysql = require("mysql");
 var inquirer = require("inquirer");
 var figlet = require("figlet");
 const {Table} = require('console-table-printer');
+const { exit } = require("process");
 
 // create the connection information for the sql database
 var connection = mysql.createConnection({
   host: "localhost",
-
-  // Your port; if not 3306
   port: 3306,
-
-  // Your username
   user: "root",
-
-  // Your password
   password: "",
   database: "employee_trackerDB"
 });
@@ -103,7 +98,8 @@ function start() {
           removeEmployee();
         } 
         else{
-          connection.end();
+            connection.end();
+            exitTracker();
         }
     });
 };
@@ -673,11 +669,26 @@ function removeEmployee() {
             // },
             function(err) {
                 if (err) throw err;
-                console.log(`The employee was removed successfully! \n  ${answer.firstname} ${answer.lastname}`);
+                console.log(`The employee was removed successfully! \n  ${answer.employee}`);
                 console.log("")
 
                 allEmployeesLastName(); // Show all Employees to verify new department was added
             }
             );
         });
+    };
+
+
+
+    function exitTracker(){
+        console.log("")
+        figlet('Have a nice day!', function(err, data) {
+            if (err) {
+                console.log('Something went wrong...');
+                console.dir(err);
+                return;
+            }
+            console.log(data)
+            console.log("")
+});
     };
