@@ -54,8 +54,8 @@ function start() {
                     "Update Employee Role", 
                     "Update Employee Manager", 
                     new inquirer.Separator(),
-                    "Remove Employee", 
-                    "   <EXIT>", 
+                    "  xx Remove Employee xx", 
+                    "         <EXIT>", 
                     new inquirer.Separator()
                 ]
       })
@@ -94,7 +94,7 @@ function start() {
         else if(answer.tracker === "Update Employee Manager") {
           updateEmployeeManager();
         } 
-        else if(answer.tracker === "Remove Employee") {
+        else if(answer.tracker === "  xx Remove Employee xx") {
           removeEmployee();
         } 
         else{
@@ -560,8 +560,9 @@ function addEmployee() {
             },
             function(err) {
                 if (err) throw err;
+                console.log("");
                 console.log(`The employee was added successfully! \n  ${answer.firstname} ${answer.lastname}, Role: ${answer.role}, Manager: ${answer.manager} `);
-                console.log("")
+                console.log("");
 
                 allEmployeesLastName(); // Show all Employees to verify new department was added
             }
@@ -573,7 +574,6 @@ function addEmployee() {
 
 const existingEmployee = [];
 const existingEmployeeID = [];
-
 function existingEmployees(){
         // First query the database to display all the available departments
         connection.query("SELECT * FROM employee ORDER BY last_name ASC", function(err, results) {
@@ -588,7 +588,6 @@ function existingEmployees(){
             }
             console.log({existingEmployee});
             console.log({existingEmployeeID});
-    
         });
 };
 existingEmployees();
@@ -612,7 +611,7 @@ function removeEmployee() {
             {
               name: "employee",
               type: "rawlist",
-              message: "  Which employe would you like to remove?",
+              message: "  Which employee would you like to remove?",
               choices: existingEmployee
             }
             // ,
@@ -680,6 +679,113 @@ function removeEmployee() {
 
 
 
+    function updateEmployeeManager() {
+
+        // Propmt user for the employee to add
+            inquirer
+            .prompt([
+                // {
+                //   name: "firstname",
+                //   type: "input",
+                //   message: "  What is the employee's first name?"
+                // },
+                // {
+                //   name: "lastname",
+                //   type: "input",
+                //   message: "  What is the employee's last name?"
+                // },  
+                {
+                  name: "employee",
+                  type: "rawlist",
+                  message: "  Which employee's manager would you like to update?",
+                  choices: existingEmployee
+                }
+                ,
+                {
+                name: "manager",
+                type: "rawlist",
+                message: "  Which manager do you want to set as manager for this employee?",
+                choices: existingMgrs
+                },
+            ])
+            .then(function(answer) {
+    
+                // console.log("")
+                // console.log("    IN THE .then")
+                console.log({answer});
+                // console.log({existingRolesID});
+                // console.log({existingMgrsID});
+        
+                console.log("    BEFORE THE for loop")
+                let employeeID = "";
+                for (let i = 0; i < existingEmployee.length; i++){
+                    console.log("existingEmployee:   " ,existingEmployee[i])
+                    if (answer.employee === existingEmployee[i]){
+                        employeeID = existingEmployeeID[i]
+                    }
+                }
+                console.log({employeeID})
+                console.log("    ----    ")
+        
+    
+                // console.log({existingDepts});
+                // console.log({existingDeptsID});
+        
+                console.log("BEFORE THE for mgrID loop")
+                let mgrID = "";
+                for (let i = 0; i < existingMgrs.length; i++){
+                    console.log("existingMgrs:   " ,existingMgrs[i])
+                    if (answer.manager === existingMgrs[i]){
+                        mgrID = existingMgrsID[i]
+                    }
+                }
+                console.log({mgrID})
+                console.log("    ----    ")
+    
+    
+    
+                // When finished prompting, remove the employee
+                connection.query(`UPDATE employee SET manager_id = ${mgrID} WHERE id = ${employeeID};`,
+                // {
+                //     first_name: answer.firstname,
+                //     last_name: answer.lastname,
+                //     role_id: roleID,
+                //     manager_id: mgrID
+                // },
+                function(err) {
+                    if (err) throw err;
+                    console.log(`  The manager for ${answer.employee} was updated successfully! \n  The new manager is ${answer.manager}`);
+                    console.log("")
+    
+                    allEmployeesLastName(); // Show all Employees to verify new department was added
+                }
+                );
+            });
+        };
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    // Exit the applicaiton
     function exitTracker(){
         console.log("")
         figlet('Have a nice day!', function(err, data) {
