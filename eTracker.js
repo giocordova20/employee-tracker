@@ -178,11 +178,11 @@ function allEmployeesDepartment() {
 function allEmployeesManager() {
     // Query the database for all Departs
     let query = "SELECT  employee.id AS Employee_ID, employee.first_name AS First_Name, employee.last_name AS Last_Name, role.title AS Title, department.name AS Department, role.salary AS Salary,CONCAT(s.first_name, ' ', s.last_name) AS Manager "
-                + "FROM employee " 
-                + "LEFT JOIN role ON employee.role_id = role.id " 
+                + "FROM employee "
+                + "LEFT JOIN role ON employee.role_id = role.id "
                 + "LEFT JOIN department ON role.department_id = department.id "
                 + "LEFT JOIN employee s ON s.id = employee.manager_id "
-                + "ORDER BY department.name, employee.last_name ASC;"
+                + "ORDER BY Manager, employee.last_name ASC;";
     connection.query(query, function(err, results) {
         if (err) throw err;
     
@@ -215,7 +215,7 @@ function allEmployeesID() {
                 + "LEFT JOIN role ON employee.role_id = role.id "
                 + "LEFT JOIN department ON role.department_id = department.id "
                 + "LEFT JOIN employee s ON s.id = employee.manager_id "   
-                + "ORDER BY employee.id ASC;"
+                + "ORDER BY employee.id ASC;";
     connection.query(query, function(err, results) {
         if (err) throw err;
     
@@ -318,9 +318,31 @@ function addDepartment() {
     });
 };
 
+
+
+
+const existingRoles = [];
+const existingRolesID = [];
+function roleInfo(){
+    // Query the database for all the available Roles and Role ID
+    connection.query("SELECT * FROM role ORDER BY title", function(err, results) {
+        if (err) throw err;
+        
+        // console.log("    * roles", results);
+
+        // Create an array only for the role names and an array only for the role ids
+        for (let i = 0 ; i < results.length; i++){
+            existingRoles.push(results[i].title);
+            existingRolesID.push(results[i].id);
+        }
+        // console.log({existingRoles});
+        // console.log({existingRolesID});
+    })
+};
+roleInfo();
+
 //// Add a Role \\\\
 function addRole() {
-
     // Get all the data from the department table
     connection.query("SELECT * FROM department ORDER BY name", function(err, results) {
         if (err) throw err;
@@ -451,22 +473,22 @@ existingManagers();
 
 //// Add an Employee \\\\
 function addEmployee() {
-    // First query the database to display all the available departments
-    connection.query("SELECT * FROM role ORDER BY title", function(err, results) {
-        if (err) throw err;
+    // // First query the database to display all the available departments
+    // connection.query("SELECT * FROM role ORDER BY title", function(err, results) {
+    //     if (err) throw err;
         
-        // console.log("    * roles", results);
+    //     // console.log("    * roles", results);
 
-        // Create an array only for the Department names and an array only for the department ids
-        let existingRoles = [];
-        let existingRolesID = [];
-        ID = [];
-        for (let i = 0 ; i < results.length; i++){
-            existingRoles.push(results[i].title);
-            existingRolesID.push(results[i].id);
-        }
-        // console.log({existingRoles});
-        // console.log({existingRolesID});
+    //     // Create an array only for the role names and an array only for the role ids
+    //     let existingRoles = [];
+    //     let existingRolesID = [];
+    //     ID = [];
+    //     for (let i = 0 ; i < results.length; i++){
+    //         existingRoles.push(results[i].title);
+    //         existingRolesID.push(results[i].id);
+    //     }
+    //     // console.log({existingRoles});
+    //     // console.log({existingRolesID});
 
 
         connection.query("SELECT * FROM department ORDER BY name", function(err, results) {
@@ -568,7 +590,6 @@ function addEmployee() {
             }
             );
         });
-    });
 };
 
 
@@ -678,9 +699,94 @@ function removeEmployee() {
     };
 
 
+//// Update the Manager for an employee \\\\
+function updateEmployeeRole() {
+    // Propmt user for the employee to add
+        inquirer
+        .prompt([
+            // {
+            //   name: "firstname",
+            //   type: "input",
+            //   message: "  What is the employee's first name?"
+            // },
+            // {
+            //   name: "lastname",
+            //   type: "input",
+            //   message: "  What is the employee's last name?"
+            // },  
+            {
+                name: "employee",
+                type: "rawlist",
+                message: "  Which employee's role would you like to update?",
+                choices: existingEmployee
+            }
+            ,
+            {
+            name: "role",
+            type: "rawlist",
+            message: "  Which role would you like to assign to this employee?",
+            choices: existingRoles
+            },
+        ])
+        .then(function(answer) {
 
+            // console.log("")
+            // console.log("    IN THE .then")
+            console.log({answer});
+            // console.log({existingRolesID});
+            // console.log({existingMgrsID});
+    
+            console.log("    BEFORE THE for loop")
+            let employeeID = "";
+            for (let i = 0; i < existingEmployee.length; i++){
+                console.log("existingEmployee:   " ,existingEmployee[i])
+                if (answer.employee === existingEmployee[i]){
+                    employeeID = existingEmployeeID[i]
+                }
+            }
+            console.log({employeeID})
+            console.log("    ----    ")
+    
+
+            // console.log({existingDepts});
+            // console.log({existingDeptsID});
+    
+            console.log("BEFORE THE for mgrID loop")
+            let roleID = "";
+            for (let i = 0; i < existingRoles.length; i++){
+                console.log("  existingRoles:   " ,existingRoles[i])
+                if (answer.role === existingRoles[i]){
+                    roleID = existingRolesID[i]
+                }
+            }
+            console.log({roleID})
+            console.log("    ----    ")
+
+
+
+            // When finished prompting, remove the employee
+            connection.query(`UPDATE employee SET role_id = ${roleID} WHERE id = ${employeeID};`,
+            // {
+            //     first_name: answer.firstname,
+            //     last_name: answer.lastname,
+            //     role_id: roleID,
+            //     manager_id: mgrID
+            // },
+            function(err) {
+                if (err) throw err;
+                console.log(`  The role for ${answer.employee} was updated successfully! \n  The new role is ${answer.role}`);
+                console.log("")
+
+                allEmployeesLastName(); // Show all Employees to verify new department was added
+            }
+            );
+        });
+    };
+    
+
+
+    //// Update the Manager for an employee \\\\
     function updateEmployeeManager() {
-
         // Propmt user for the employee to add
             inquirer
             .prompt([
